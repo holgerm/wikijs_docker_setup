@@ -1,0 +1,13 @@
+#!/bin/sh
+
+BACKUP_FOLDER=/var/postgres/backup
+NOW=$(date '+%d')
+
+PG_DUMPALL=$(which pg_dumpall)
+GZIP=$(which gzip)
+
+[ ! -d "$BACKUP_FOLDER" ] && mkdir --parents $BACKUP_FOLDER
+
+### posgresql database password for user must be stored in environment variable $PGPASSWORD
+FILE=${BACKUP_FOLDER}/backup-${NOW}.sql.gz
+$PG_DUMPALL -h $DB_CONTAINER_NAME -p 5432 -U $DB_USER --no-password -l $DATABASE_NAME | $GZIP -9 > $FILE

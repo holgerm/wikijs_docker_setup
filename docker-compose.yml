@@ -1,0 +1,56 @@
+version: "3"
+services:
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_PASSWORD: ${DB_PASSWD}
+      POSTGRES_USER: ${DB_USER} 
+    logging:
+      driver: "none"
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  wiki:
+    image: requarks/wiki:2
+    depends_on:
+      - db
+    environment:
+      # config.yml: 
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASSWD}
+      DB_NAME: wiki
+      # letsencrypt:
+      SSL_ACTIVE: true
+      LETSENCRYPT_DOMAIN: wiki.holgermuegge.de
+      LETSENCRYPT_EMAIL: mail@holgermuegge.de
+    restart: unless-stopped
+    ports:
+      - "80:3000"
+      - "443:3443"
+    volumes:
+      - ./config.yml:/wiki/config.yml
+
+  periodic-backup:
+    build: ./periodic-backup
+    container_name: database-backup
+    environment:
+      DB_CONTAINER_NAME: db
+      DATABASE_NAME: wiki
+      DB_USER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWD}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./periodic-backup/backup:/var/postgres/backup
+      - ./periodic-backup/scripts:/etc/periodic
+    command: crond -f -d 8
+    restart: always
+
+
+volumes:
+  db-data:
