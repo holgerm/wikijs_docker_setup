@@ -27,8 +27,8 @@ services:
       DB_NAME: wiki
       # letsencrypt:
       SSL_ACTIVE: true
-      LETSENCRYPT_DOMAIN: wiki.holgermuegge.de
-      LETSENCRYPT_EMAIL: mail@holgermuegge.de
+      LETSENCRYPT_DOMAIN: ${LETSENCRYPT_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     restart: unless-stopped
     ports:
       - "80:3000"
